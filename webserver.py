@@ -2,6 +2,15 @@
 
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 
+try:
+    import rospy
+    from std_msgs.msg import String
+    # create node
+    pub = rospy.Publisher('chatter', String, queue_size=10)
+    rospy.init_node('webserver', anonymous=True)
+except:
+    pass
+
 DEFAULT_PORT=3000
 
 class MYS(BaseHTTPRequestHandler):
@@ -22,8 +31,17 @@ class MYS(BaseHTTPRequestHandler):
         length = self.headers.getheaders('content-length')
         data = self.rfile.read(int(length[0]))
         print('Received post data: %s' % data)
-        ## body
-        #result = cmdhandler.mainbody(data)
+        # publish
+        try:
+            rospy.loginfo(result)
+            pub.publish(result)
+            print("publish success!\n")
+        #except rospy.ROSInterruptException:
+        except Exception as e:
+            print("publish failed!\n")
+            print(e)
+            pass
+        # repsonse
         result = data
         if result == {}:
             print('do_POST result is {}')
